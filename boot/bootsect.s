@@ -44,16 +44,19 @@ ROOT_DEV = 0x306
 
 entry _start
 _start:
-	mov	ax,#BOOTSEG
-	mov	ds,ax
-	mov	ax,#INITSEG
-	mov	es,ax
-	mov	cx,#256
-	sub	si,si
-	sub	di,di
-	rep
-	movw
-	jmpi	go,INITSEG
+	mov	ax,#BOOTSEG		! ax寄存器是一个16位的通用寄存器，可以用于各种操作，包括算数，逻辑和数据传输
+	mov	ds,ax			! ds寄存器是一个16位的数据段寄存器，用于存放源数据段的段地址，这里实际上就是bootsect.s编译后的文件在内存之中的段地址
+	mov	ax,#INITSEG		
+	mov	es,ax			! es寄存器是一个16位的数据段寄存器，用于存放目的数据段的段地址，这里是将es寄存器设置为0x9000
+	mov	cx,#256			! cx寄存器主要用于在循环和字符串操作之中用作计数器
+	sub	si,si			! 源地址的段内偏移量
+	sub	di,di			! 目标地址的段内偏移量
+	rep					! req表示重复后面的执行指令，重复次数由cx寄存器指定
+	movw				! 表示复制一个字(word, 16位), 结合起来看就是不断重复地复制一个字
+	! 总结一下，从47行到55行代码的作用就是将内存地址0x7c00处开始往后的512字节的数据，原封不动地复制到0x90000处开始的后面512字节的地方
+	! 这样做的结果就是将bootsect.s从0x7c00处移动到了0x90000处
+
+	jmpi	go,INITSEG	! go是一个标号，INITSEG是一个地址，这行代码的作用是跳转到INITSEG处执行代码
 go:	mov	ax,cs
 	mov	ds,ax
 	mov	es,ax
