@@ -56,13 +56,17 @@ _start:
 	! 总结一下，从47行到55行代码的作用就是将内存地址0x7c00处开始往后的512字节的数据，原封不动地复制到0x90000处开始的后面512字节的地方
 	! 这样做的结果就是将bootsect.s从0x7c00处移动到了0x90000处
 
-	jmpi	go,INITSEG	! go是一个标号，INITSEG是一个地址，这行代码的作用是跳转到INITSEG处执行代码
-go:	mov	ax,cs
-	mov	ds,ax
-	mov	es,ax
+	jmpi	go,INITSEG	! go是一个标号，INITSEG是一个地址，这行代码的作用是跳转到INITSEG处执行代码，这段代码实际上就是：
+	! cs = 0x90000
+	! ip = go
+go:	mov	ax,cs			! cs寄存器表示代码段寄存器，CPU即将要执行的代码在内存之中的位置，ip就是偏移地址
+	mov	ds,ax			! ds是数据段寄存器
+	mov	es,ax			! es是扩展段寄存器
 ! put stack at 0x9ff00.
-	mov	ss,ax
+	mov	ss,ax			! ss是栈段寄存器，后面要配合栈指针寄存器sp来表示此时的栈顶地址
 	mov	sp,#0xFF00		! arbitrary value >>512
+
+! 到上面为止的代码所作的工作给如何访问代码、如何访问数据、如何访问栈等等，都做了一些内存的初始化工作，接下来就是加载setup和system了
 
 ! load the setup-sectors directly after the bootblock.
 ! Note that 'es' is already set up.
